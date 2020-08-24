@@ -1,3 +1,5 @@
+Downloads and unzips the 'UCI HAR Dataset
+=========================================
 if (!dir.exists("UCI HAR Dataset")) {
   # ONE EXTREME COINCIDENCE
   ## It does a simplistic test, yet sufficient on most of the cases,
@@ -34,6 +36,15 @@ if (!dir.exists("UCI HAR Dataset")) {
   message("    ...data files are available, in the folder \n",
           "       with name 'UCI HAR Dataset' in the working directory.")
 }
+
+===========================
+Loading required packages
+===========================
+library(dplyr)
+
+======================================================
+Loads all the data files needed for this analysis in R
+======================================================
 
 read.table_instructions <- list(
    file = list(
@@ -79,9 +90,17 @@ data_files <- with(read.table_instructions,
 message("    ...data files were successfully loaded into R, \n",
         "       in the list with name 'data_files'.")
 
+=====================================================================
+Step 1: Merges the training and the test sets to create one data set.
+=====================================================================
+
 merged_data <- with(data_files,
                     rbind(cbind(subject_train, y_train, X_train),
                           cbind(subject_test,  y_test,  X_test)))
+
+===============================================================================================
+Step 2: Extracts only the measurements on the mean and standard deviation for each measurement.
+===============================================================================================
 
 target_features_indexes <- grep("mean\\(\\)|std\\(\\)",
                                 data_files$features[[2]])
@@ -91,9 +110,17 @@ target_variables_indexes <- c(1, 2, # the first two columns that refer to
 
 target_data <- merged_data[ , target_variables_indexes]
 
+===============================================================================
+Step 3: Uses descriptive activity names to name the activities in the data set.
+===============================================================================
+
 target_data[[2]] <- factor(target_data[[2]],
                            levels = data_files$activity_labels[[1]],
                            labels = data_files$activity_labels[[2]])
+
+==========================================================================
+Step 4: Appropriately labels the data set with descriptive variable names.
+==========================================================================
 
 descriptive_variable_names <- data_files$features[[2]][target_features_indexes]
 descriptive_variable_names <- gsub(pattern = "BodyBody", replacement = "Body",
@@ -101,6 +128,10 @@ descriptive_variable_names <- gsub(pattern = "BodyBody", replacement = "Body",
 
 tidy_data <- target_data
 names(tidy_data) <- c("subject", "activity", descriptive_variable_names)
+
+======================================================================================================================================================
+Step 5: From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+======================================================================================================================================================
 
 tidy_data_summary <- tidy_data %>%
   group_by(subject, activity) %>%
@@ -116,3 +147,10 @@ write.table(tidy_data_summary, "tidy_data_summary.txt", row.names = FALSE)
 message("The script 'run_analysis.R was executed successfully. \n",
         "As a result, a new tidy data set was created with name \n", 
         "'tidy_data_summary.txt' in the working directory.")
+
+=======================
+Checking variable names
+=======================
+
+str(tidy_data_summary)
+
